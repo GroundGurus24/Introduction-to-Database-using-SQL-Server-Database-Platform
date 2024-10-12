@@ -1,0 +1,349 @@
+USE GGAngkas
+GO
+-- SELECT - retrieve records / DQL - Data Query Language
+
+-- 1. Retrieve all records
+SELECT * FROM Passenger
+SELECT * FROM Rider
+
+-- 2. Retrieve specific columns
+SELECT FIRSTNAME, LASTNAME FROM Passenger
+
+---3. Filtering
+SELECT * FROM Passenger where PassengerID = 5
+
+---4. Sorting Rows (DESC and ASC)
+SELECT * FROM Passenger WHERE PassengerID between 34 and 100
+ORDER BY FirstName DESC
+
+-- 5. Grouping rows using Group BY
+ SELECT City, COUNT(*) AS CountPerCity FROM Passenger
+ GROUP BY City
+ ORDER BY City
+
+ ---6. Filtering groups using the having clause
+ SELECT City, COUNT(*) AS CountPerCity FROM Passenger
+ GROUP BY City
+HAVING COUNT (*) > 500
+ ORDER BY City
+
+ -- 7. Distinct
+ SELECT DISTINCT CITY FROM  Passenger
+
+ -- 8 AND and OR Operator
+ SELECT * FROM Rider
+ WHERE RiderID  = 1 and RiderID = 2
+
+  SELECT * FROM Rider
+ WHERE RiderID  = 1 OR RiderID = 2
+
+ -- 9 NOT Operator
+ SELECT * FROM Rider WHERE CITY NOT IN ('Pasig','Taguig')
+
+ --10. SELECT Top 
+ SELECT TOP 100 * FROM Rider
+ WHERE City = 'Makati'
+ ORDER BY RiderID desc
+
+
+  --11. MIN and MAX
+  SELECT MIN(RiderID) FROM Rider
+  SELECT MAX(RiderID) FROM Rider
+
+  --12. COUNT
+  SELECT  COUNT(*) FROM Rider
+
+
+  --13. AVG and SUM
+  INSERT INTO Booking (PassengerID, RiderID, [PickUpLocation],[DropOffLocation],[BookingTime],[BookingStatus])
+  VALUES
+  (2,4,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Completed'),
+  (2,6,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Completed'),
+  (2,7,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Completed'),
+  (2,5,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Completed'),
+  (5,4,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Completed'),
+  (5,6,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Completed'),
+  (5,7,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Completed'),
+  (5,5,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Completed')
+
+
+  INSERT INTO [dbo].[Payment] (BookingID,PaymentMethod,Amount,PaymentTime)
+  VALUES(1,'GCASH',150,GETDATE()),
+  (2,'GCASH',150,GETDATE()),  (3,'GCASH',150,GETDATE()), (4,'GCASH',150,GETDATE())
+
+  INSERT INTO [dbo].[Payment] (BookingID,PaymentMethod,Amount,PaymentTime)
+  VALUES(5,'GCASH',560,GETDATE()),
+  (6,'GCASH',567,GETDATE()),  (7,'GCASH',450,GETDATE()), (8,'GCASH',545,GETDATE())
+  SELECT DISTINCT a.FirstName + ' ' + a.LastName as FullName , SUM(c.Amount) as TotalAmount
+  FROm Passenger a
+  INNER JOIN Booking b
+  ON a.PassengerID = b.PassengerID
+  INNER JOIN Payment c
+  ON b.BookingID = c.BookingID
+  GROUP BY a.FirstName,a.LastName
+
+  SELECT DISTINCT a.FirstName + ' ' + a.LastName as FullName , AVG(c.Amount) as TotalAmount
+  FROm Passenger a
+  INNER JOIN Booking b
+  ON a.PassengerID = b.PassengerID
+  INNER JOIN Payment c
+  ON b.BookingID = c.BookingID
+  GROUP BY a.FirstName,a.LastName
+
+  
+  --13. Like
+  SELECT * FROM Passenger WHERE LastName LIKE 'a'
+  SELECT * FROM Passenger WHERE FirstName LIKE 'a%'
+  SELECT * FROM Passenger WHERE FirstName LIKE '%Alex%'
+
+  --14. IN and NOT IN
+  SELECT * FROM Rider where RiderID in (5, 100, 67)
+  SELECT * FROM Rider where RiderID NOT IN (5, 100, 67)
+
+  -- 15. Between (Range)
+  SELECT * FROM Passenger WHERE PassengerID between 1 and 10
+
+  --16. SQL Case
+  -- Syntax
+ -- CASE
+	--WHEN condition1 then result1
+	--when condition2 then result2
+	--...
+	--ELSE
+	--result
+ -- END
+  SELECT DISTINCT a.FirstName + ' ' + a.LastName as FullName , 
+  
+  CASE 
+	WHEN SUM(c.Amount) >= 1500 THEN 'Top Tier Client'
+	WHEN SUM(c.Amount) <= 1000 THEN 'Middle Tier Client'
+	ELSE 'No yet booked'
+  
+ END  AS Remarks
+  
+  FROm Passenger a
+  LEFT JOIN Booking b
+  ON a.PassengerID = b.PassengerID
+  LEFT JOIN Payment c
+  ON b.BookingID = c.BookingID
+
+  GROUP BY a.FirstName,a.LastName
+    ORDER BY Remarks DESC
+
+--- SQL Joins
+
+--1. INNER JOIN
+
+SELECT a.FirstName, a.City, a.PassengerID, b.BookingID
+FROM Passenger a
+INNER JOIN Booking b
+ON a.PassengerID = b.PassengerID
+
+--2. LEFT JOIN OR OUTER JOIN
+SELECT a.FirstName, a.City, a.PassengerID, b.BookingID
+FROM Passenger a --- passenger as left table
+LEFT JOIN Booking b -- booking as right table
+ON a.PassengerID = b.PassengerID
+
+--3. Right Join
+SELECT a.FirstName, a.City, a.PassengerID, b.BookingID
+FROM Passenger a --- passenger as left table
+RIGHT JOIN Booking b -- booking as right table
+ON a.PassengerID = b.PassengerID
+
+--4. FULL OUTER JOIN
+SELECT a.FirstName, a.City, a.PassengerID, b.BookingID
+FROM Passenger a --- passenger as left table
+FULL OUTER JOIN Booking b -- booking as right table
+ON a.PassengerID = b.PassengerID
+
+--5. Self Join
+CREATE TABLE Employee (
+EmployeeID INT IDENTITY (1,1) PRIMARY KEY, 
+FirstName varchar(100),
+LastName varchar(100),
+ManagerID INT
+)
+
+INSERT INTO Employee (FirstName,LastName,ManagerID)
+VALUES('Tua','Magalong',2)
+
+SELECT e.FirstName, e.LastName, f.FirstName + ' ' + f.LastName as ManagerName FROM 
+Employee e
+LEFT JOIN Employee f 
+ON e.ManagerID = f.EmployeeID
+
+--- DML (Data Manipulation Language) - INSERT, UPDATE, DELETE
+--INSERT
+INSERT INTO Booking (PassengerID, RiderID, [PickUpLocation],[DropOffLocation],[BookingTime],[BookingStatus])
+  VALUES (2,4,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Pending')
+
+--UPDATE
+SELECT * FROM Booking WHERE BookingID = 9
+UPDATE Booking SET BookingStatus = 'Completed' WHERE BookingID = 9
+
+--DELETE
+SELECT * FROM Booking WHERE BookingID = 9
+DELETE FROM Booking WHERE BookingID = 9
+
+
+--- DDL (Data DEFINITION Language) - CREATE, ALTER, DROP, TRUNCATE
+--1. CREATE
+CREATE TABLE Employee3 (
+EmployeeID INT IDENTITY (1,1) PRIMARY KEY, 
+FirstName varchar(100),
+LastName varchar(100),
+ManagerID INT
+)
+
+--2. ALTER
+ALTER TABLE Employee3 ADD Email VARCHAR(100)
+
+ALTER TABLE Employee3 ALTER COLUMN Email VARCHAR(150)
+
+ALTER TABLE Employee3 DROP COLUMN Email
+
+--ALTER TABLE, DATABASE, VIEWS, LOGIN, STORED PROC, FUNCTIONS
+
+--3. DROP
+-- SYNTAX DROP <OBJECTTYPE> <OBJECTNAME>
+DROP TABLE Employee3
+
+--4. TRUNCATE VERSUS DELETE
+-- DELETE
+SELECT * FROM Employee WHERE EmployeeID = 3
+DELETE  FROM Employee WHERE EmployeeID = 3
+
+--TRUNCATE 
+TRUNCATE TABLE Employee 
+
+--- TCL Transaction Control Language (TCL) - COMMIT, ROLLBACK, TRANSACTION
+
+-- ACID Properties
+   -- Atomicity
+   -- Consistency
+   -- Isolation
+   -- Durability
+
+BEGIN TRANSACTION T3
+ INSERT INTO Booking (
+ PassengerID, 
+ RiderID, [PickUpLocation],
+ [DropOffLocation],[BookingTime],
+ [BookingStatus])
+ VALUES (5,4,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Pending')
+
+ --COMMIT TRAN T3
+ --ROLLBACK TRAN T3
+ SELECT * FROM Booking
+
+ BEGIN TRANSACTION T3
+ UPDATE Booking SET BookingStatus = 'Completed' WHERE BookingID IN (12,13,14)
+
+ --COMMIT TRAN T3
+ --ROLLBACK TRAN T3
+BEGIN TRANSACTION T3
+ 
+ DELETE FROM Booking 
+
+ ROLLBACK TRAN T3
+
+ -- Stored Procedures
+DELETE FROM Booking WHERE BookingID = 1
+
+SELECT a.FirstName, a.City, a.PassengerID, b.BookingID
+FROM Passenger a
+INNER JOIN Booking b
+ON a.PassengerID = b.PassengerID
+
+
+UPDATE Rider SET FirstName = 'Capil'
+
+INSERT INTO Booking (PassengerID, RiderID, [PickUpLocation],[DropOffLocation],[BookingTime],[BookingStatus])
+VALUES (2,4,'8052 Weston Court','6680 Brookdale Dr.',GETDATE(),'Pending')
+
+
+--- Syntax
+
+--CREATE PROCEDURE procedure_name (parameters)
+--AS
+--BEGIN
+--  --- sql statements here
+--END
+
+CREATE PROCEDURE sp_Delete_Booking (@bookingID int)
+AS
+BEGIN
+ DELETE FROM Booking WHERE BookingID = @bookingID
+END
+
+EXEC sp_Delete_Booking @bookingID = 4
+
+
+ALTER PROCEDURE sp_Retrieve_Booking
+AS
+BEGIN
+SELECT a.FirstName, a.City, a.PassengerID, b.BookingID
+FROM Passenger a
+INNER JOIN Booking b
+ON a.PassengerID = b.PassengerID
+END
+
+EXEC sp_Retrieve_Booking
+
+
+CREATE PROCEDURE sp_Create_Booking
+(
+@PassengerID INT,
+@RiderID INT,
+@PickUpLocation VARCHAR(200),
+@DropOffLocation VARCHAR(200),
+@BookingStatus VARCHAR(30)
+)
+AS
+BEGIN
+INSERT INTO Booking 
+(PassengerID, 
+RiderID, 
+[PickUpLocation],
+[DropOffLocation],
+[BookingTime],
+[BookingStatus])
+VALUES 
+(@PassengerID,
+ @RiderID,
+ @PickUpLocation,
+ @DropOffLocation,
+ GETDATE(),
+ @BookingStatus)
+END
+
+EXEC sp_Create_Booking 
+@PassengerID =9,
+@RiderID =11,
+@PickUpLocation ='8052 Weston Court',
+@DropOffLocation ='6680 Brookdale Dr.',
+@BookingStatus ='Cancelled'
+
+select * from Passenger
+select * from Rider
+
+
+-- 
+
+
+CREATE VIEW vw_Bookings
+AS
+SELECT a.PassengerID, A.FirstName, A.LastName, a.Address, a.City as CityPassenger,
+b.BookingID, b.BookingStatus, b.BookingTime, b.DropOffLocation,b.PickUpLocation,
+c.CITY as CityRider,c.FirstName + ' ' +c.LastName as RiderName
+FROM Passenger a
+LEFT JOIN Booking b
+ON a.PassengerID = b.PassengerID
+LEFT JOIN Rider c
+ON c.RiderID = b.RiderID
+
+SELECT * FROM vw_Bookings
+
+
+SELECT * FROM Booking
